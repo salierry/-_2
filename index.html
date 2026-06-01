@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Полный тест: ОС и Linux (130 вопросов)</title>
+  <style>
+    :root {
+      --primary: #3b82f6; --primary-hover: #2563eb;
+      --success: #16a34a; --error: #dc2626;
+      --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-muted: #64748b;
+      --border: #e2e8f0; --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; padding: 16px; padding-bottom: 40px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 24px; }
+    header h1 { font-size: 1.6rem; margin-bottom: 6px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    header p { color: var(--text-muted); font-size: 0.9rem; }
+    
+    .stats-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: var(--card); padding: 10px 14px; border-radius: var(--radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 16px; font-weight: 600; position: sticky; top: 8px; z-index: 10; border: 1px solid var(--border); font-size: 0.85rem; }
+    .progress-line { height: 4px; background: var(--border); border-radius: 2px; margin: 0 0 20px 0; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s ease; }
+
+    .question-card { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border); }
+    .q-text { font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+    .q-num { color: var(--primary); margin-right: 4px; }
+    
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .option { display: flex; align-items: center; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s; background: #fafafa; min-height: 48px; font-size: 0.9rem; }
+    .option:hover:not(.disabled) { border-color: var(--primary); background: #eff6ff; }
+    .option input { margin-right: 10px; accent-color: var(--primary); transform: scale(1.2); flex-shrink: 0; }
+
+    .option.disabled { pointer-events: none; opacity: 0.9; }
+    .option.correct { border-color: var(--success); background: #f0fdf4; color: var(--success); text-decoration: underline; text-decoration-color: var(--success); text-decoration-thickness: 2.5px; text-underline-offset: 4px; font-weight: 600; }
+    .option.wrong { border-color: var(--error); background: #fef2f2; color: var(--error); }
+
+    .btn { background: var(--primary); color: white; border: none; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; margin-top: 14px; transition: all 0.2s; width: 100%; font-size: 1rem; }
+    .btn:hover:not(:disabled) { background: var(--primary-hover); transform: translateY(-2px); }
+    .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+    .btn.checked { background: var(--success); cursor: default; }
+    .feedback { margin-top: 8px; font-weight: 500; min-height: 22px; font-size: 0.9rem; }
+
+    #restart-btn { display: none; margin: 20px auto; width: 100%; max-width: 260px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 16px; }
+    #restart-btn:hover { opacity: 0.95; transform: translateY(-2px); }
+
+    @media (min-width: 640px) {
+      header h1 { font-size: 2rem; }
+      .stats-bar { padding: 12px 20px; font-size: 0.95rem; }
+      .question-card { padding: 20px; }
+      .option { padding: 14px 16px; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header><h1>🎓 Полный тест: ОС и Linux</h1><p>Все 130 вопросов. Прогресс сохраняется в текущей сессии.</p></header>
+    <div class="stats-bar">
+      <div class="stat">✅ Верно: <b id="score">0</b></div>
+      <div class="stat">📝 Осталось: <b id="progress">130</b></div>
+      <div class="stat">📊 Прогресс: <b id="percent">0%</b></div>
+    </div>
+    <div class="progress-line"><div class="progress-fill" id="progress-fill"></div></div>
+    <div id="quiz-container"></div>
+    <button class="btn" id="restart-btn" onclick="location.reload()">🔄 Пройти заново</button>
+  </div>
+
+<script>
+const QUESTIONS = [
+  {q:"Сколько минимально места на диске требуется ОС Astra Linux SE 1.7.4 при установке с графической оболочкой Fly и ПО, входящим в состав дистрибутива?", c:"16 ГБ", w:["8 ГБ","32 ГБ","64 ГБ"]},
+  {q:"В какую группу, дающую право выполнять команды от имени суперпользователя root, будет включена учётная запись администратора, созданная в процессе установки ОС?", c:"sudo", w:["root","admin","wheel"]},
+  {q:"Какой вариант разметки диска был выбран при демонстрации процесса установки ОС?", c:"Авто — использовать весь диск, затем Все файлы в одном разделе", w:["Разметка вручную","LVM с шифрованием","Только swap и /boot"]},
+  {q:"Что такое GRUB?", c:"Системный загрузчик", w:["Графическая оболочка","Файловый менеджер","Текстовый редактор"]},
+  {q:"Какое приложение отвечает за работу рабочего стола Fly?", c:"Менеджер окон (fly-wm)", w:["Xorg","GNOME Shell","Compiz"]},
+  {q:"Как называется устройство, которое может отправлять команды ЭВМ и выводит на экран полученный результат?", c:"Терминал", w:["Консоль","Сервер","Эмулятор"]},
+  {q:"Какая папка отвечает за конфигурационные файлы?", c:"/etc", w:["/bin","/var","/opt"]},
+  {q:"Какая управляющая последовательность завершает операцию?", c:"Ctrl+C (отправляет SIGINT)", w:["Ctrl+Z","Ctrl+D","Esc"]},
+  {q:"Какая команда выводит список файлов и каталогов текущей директории?", c:"ls", w:["dir","list","show"]},
+  {q:"Какими текстовыми редакторами можно редактировать файл в Linux?", c:"nano, vim, vi, mcedit", w:["WordPad, Notepad","gedit, leafpad","nano, vim, word"]},
+  {q:"Какой командой можно получить справку на любую команду?", c:"man (или help для встроенных)", w:["doc","info","guide"]},
+  {q:"Какой командой можно перенаправить стандартный вывод в файл hosts.bak?", c:">", w:["|","<",">>"]},
+  {q:"В какой переменной хранится список каталогов для запуска исполняемых файлов?", c:"PATH", w:["HOME","SHELL","ENV"]},
+  {q:"Какой поток данных передаётся по конвейеру (|)?", c:"stdout левой команды в stdin правой", w:["stderr в stdout","аргументы в скрипт","логи в файл"]},
+  {q:"Какая команда отображает историю команд?", c:"history", w:["log","trace","mem"]},
+  {q:"Какой файл содержит профиль текущего пользователя?", c:"~/.profile (и ~/.bashrc)", w:["/etc/profile","/etc/passwd","/etc/shadow"]},
+  {q:"Какой каталог содержит конфигурационные файлы Linux?", c:"/etc", w:["/bin","/home","/tmp"]},
+  {q:"Можно ли в ОС Linux создать два файла /tmp/test.txt и /tmp/TEST.txt?", c:"Да, Linux учитывает регистр", w:["Нет, это один файл","Только от root","Только в NTFS"]},
+  {q:"Какая максимальная длина имени файла в ОС Linux?", c:"255 байт", w:["128 байт","512 байт","1024 байт"]},
+  {q:"Каким символом в выводе команды ls -l помечаются обычные файлы?", c:"-", w:["d","l","*"]},
+  {q:"Можно ли найти неименованный канал в структуре каталогов?", c:"Нет", w:["Да, в /dev","Да, в /tmp","Да, в /proc"]},
+  {q:"Каким ключом команды ls можно отобразить inode?", c:"-i", w:["-a","-l","-h"]},
+  {q:"Можно ли создать жёсткую ссылку на файл, расположенный на другой файловой системе?", c:"Нет, inode уникален в пределах одной ФС", w:["Да, всегда","Только через sudo","Только если файл < 1 МБ"]},
+  {q:"Путь tmp/1/2.txt является абсолютным или относительным?", c:"Относительным", w:["Абсолютным","Каноническим","Виртуальным"]},
+  {q:"Что будет при вызове команды touch с существующим файлом?", c:"Обновит временные метки", w:["Удалит его","Изменит владельца","Добавит содержимое"]},
+  {q:"Назовите четыре файла, в которых содержится информация о пользователях и группах.", c:"/etc/passwd, /etc/shadow, /etc/group, /etc/gshadow", w:["/etc/users, /etc/pwd, /etc/grp, /etc/gpw","/etc/login, /etc/shad, /etc/grps, /etc/gsh","/etc/pass, /etc/sh, /etc/gp, /etc/gs"]},
+  {q:"Как называется файл бекапа для /etc/shadow?", c:"/etc/shadow-", w:["/etc/shadow.bak","/etc/shadow.old","/etc/shadow~"]},
+  {q:"Что означает x в поле пароля в файле /etc/passwd?", c:"Хеш пароля хранится в /etc/shadow", w:["Пароль пустой","Аккаунт заблокирован","Пароль в открытом виде"]},
+  {q:"В каком файле хранятся настройки диапазонов UID, GID?", c:"/etc/login.defs", w:["/etc/profile","/etc/passwd","/etc/security/limits.conf"]},
+  {q:"Что делает команда useradd -D?", c:"Показывает настройки по умолчанию для новых пользователей", w:["Удаляет пользователя","Показывает историю","Создаёт группу"]},
+  {q:"Какой UID присвоится первому созданному пользователю в системе?", c:"1000", w:["0","1","500"]},
+  {q:"Какие две команды могут быть использованы для блокировки и разблокировки пользователя?", c:"usermod и passwd", w:["chown, chmod","useradd, userdel","login, logout"]},
+  {q:"Как заставить пользователя принудительно сменить свой пароль при следующем входе?", c:"chage -d 0", w:["passwd -l","usermod -L","chage -E 0"]},
+  {q:"Что делает команда faillog -u user -r?", c:"Сбрасывает счётчик неудачных попыток входа", w:["Блокирует пользователя","Удаляет домашний каталог","Показывает логи"]},
+  {q:"Какой командой можно изменить владельца файла/папки?", c:"chown", w:["chmod","chgrp","useradd"]},
+  {q:"Какой командой можно изменить права доступа на файл/папку?", c:"chmod", w:["chown","umask","passwd"]},
+  {q:"Что даёт право read на файл?", c:"Читать содержимое", w:["Запускать","Изменять","Удалять"]},
+  {q:"Что даёт право write на файл?", c:"Изменять/добавлять данные", w:["Читать","Запускать","Удалять"]},
+  {q:"Что даёт право execute на файл?", c:"Запускать как исполняемый", w:["Читать","Изменять","Просматривать права"]},
+  {q:"Что даёт право read на папку?", c:"Видеть список файлов внутри", w:["Входить в папку","Создавать файлы","Удалять файлы"]},
+  {q:"Что даёт право write на папку?", c:"Создавать/удалять/переименовывать записи", w:["Читать файлы","Входить в каталог","Просматривать inode"]},
+  {q:"Что даёт право execute на папку?", c:"Входить в каталог и обращаться к объектам", w:["Читать содержимое файлов","Переименовывать папку","Удалять папку"]},
+  {q:"Что даёт право write вместе с execute на папку?", c:"Создавать, удалять и переименовывать объекты внутри", w:["Только читать","Только запускать файлы","Блокировать доступ"]},
+  {q:"Если владелец файла имеет права 007, сможет ли он прочитать его через cat?", c:"Нет, к владельцу применяются права ---", w:["Да, у others есть права","Да, если он в группе","Только через sudo"]},
+  {q:"Что реализуют политики мандатного контроля целостности?", c:"Распределение по уровням целостности", w:["Шифрование диска","Антивирусную защиту","Сетевой экран"]},
+  {q:"Какой уровень целостности является минимальным?", c:"0", w:["1","63","-1"]},
+  {q:"Какой уровень целостности присваивается привилегированному пользователю?", c:"63", w:["0","10","32"]},
+  {q:"Для чего предназначен режим графического киоска в Astra Linux?", c:"Ограничение запуска программ на уровне GUI", w:["Виртуализация ядра","Мониторинг сети","Шифрование диска"]},
+  {q:"В какой программе настраивается графический киоск?", c:"Управление политикой безопасности", w:["/etc/fly","/usr/bin/kiosk","Настройки рабочего стола"]},
+  {q:"Для чего предназначен системный киоск?", c:"Ограничение возможностей на уровне ядра", w:["Запрет на использование USB","Блокировка интернета","Скрытие рабочего стола"]},
+  {q:"От чего зависит цветовая индикация интерфейса?", c:"От уровня конфиденциальности", w:["От времени суток","От версии ядра","От типа процессора"]},
+  {q:"На что влияет установка минимальной категории конфиденциальности пользователя?", c:"Выбрана по умолчанию при авторизации", w:["Блокирует вход","Снижает производительность","Отключает сеть"]},
+  {q:"На каком уровне защищённости доступно редактирование мандатных атрибутов?", c:"Смоленск (максимальный)", w:["Курск","Орёл","Базовый"]},
+  {q:"Как изменить мандатные атрибуты объекта?", c:"Через fly-fm от root, вкладка 'Мандатная метка'", w:["Через chmod","Через chown","Через /etc/security"]},
+  {q:"Что может сделать субъект с 1 уровнем конфиденциальности с объектом 2 уровня?", c:"Доступ запрещён", w:["Да, с подтверждением","Да, только чтение","Да, если root"]},
+  {q:"Какой командой можно посмотреть информацию о типе команды?", c:"type", w:["which","file","info"]},
+  {q:"Какая нотация используется для глобальных переменных?", c:"Заглавные буквы", w:["camelCase","snake_case","kebab-case"]},
+  {q:"Какие кавычки позволяют подставить значение переменной?", c:"Двойные", w:["Одинарные","Обратные","Без кавычек"]},
+  {q:"Какие кавычки экранируют символ $?", c:"Одинарные", w:["Двойные","Обратные","Без кавычек"]},
+  {q:"Какие конструкции языка позволяют повторить блок кода?", c:"for, while, until", w:["if, else, switch","try, catch, finally","do, done, repeat"]},
+  {q:"Какой конструкцией языка можно выполнить ветвление кода?", c:"if/then/elif/else/fi", w:["switch/case","select/when","loop/break"]},
+  {q:"Как в языке Bash получить значение позиционных переменных?", c:"$1, $2, ${10}", w:["%1, %2","#1, #2","arg1, arg2"]},
+  {q:"Какой командой можно очистить переменную?", c:"unset", w:["clear","delete","remove"]},
+  {q:"С помощью какой переменной получить значения всех аргументов?", c:"$* или $@", w:["$0","$#","$$"]},
+  {q:"Файл, определяющий настройки окружения пользователя в Astra Linux?", c:"~/.profile", w:["/etc/profile","~/.bashrc","/etc/passwd"]},
+  {q:"Файл, определяющий PATH для всех пользователей?", c:"/etc/profile", w:["~/.profile","/etc/environment","/etc/bashrc"]},
+  {q:"Директория шаблонов файлов для новых пользователей?", c:"/etc/skel", w:["/etc/default","/home/templates","/usr/share/skel"]},
+  {q:"Где пользователь может определить свою переменную окружения?", c:"~/.bashrc или ~/.profile", w:["/etc/passwd","/etc/shadow","/bin/bash"]},
+  {q:"Что делает команда printenv?", c:"Выводит переменные окружения", w:["Удаляет переменные","Редактирует конфиг","Запускает скрипт"]},
+  {q:"Какой файл определит настройки при наличии .bash_profile, .bash_login, .profile, .bashrc?", c:"~/.bash_profile", w:["~/.bashrc","~/.profile","~/.bash_login"]},
+  {q:"Команда создания переменной окружения в сеансе?", c:"export", w:["set","env","declare"]},
+  {q:"Команда запуска программы с изменёнными переменными окружения?", c:"env", w:["exec","run","start"]},
+  {q:"Файл для псевдонимов команд пользователя?", c:"~/.bash_aliases", w:["~/.bashrc","/etc/aliases","/etc/profile"]},
+  {q:"Командная оболочка по умолчанию в Astra Linux?", c:"Bash (/bin/bash)", w:["zsh","sh","dash"]},
+  {q:"Проблема иерархической структуры процессов в Linux заключается в...", c:"Появлении зомби-процессов", w:["Лимите в 100 процессов","Перегреве CPU","Блокировке сети"]},
+  {q:"Сколько состояний есть у процесса?", c:"5 (R, D, S, T, Z)", w:["3","4","6"]},
+  {q:"Чем больше значение параметра приоритета процесса, тем...", c:"Ниже фактический приоритет процесса", w:["Выше приоритет","Больше выделено памяти","Быстрее выполнение"]},
+  {q:"Команды для управления процессами в фоновом режиме?", c:"jobs, fg, bg", w:["top, htop, ps","start, stop, pause","run, halt, kill"]},
+  {q:"Соотнесите команду chrt и тип политики планирования:", c:"SCHED_OTHER→-o, SCHED_RR→-r, SCHED_FIFO→-f", w:["Все они перезагружают систему","Это типы файлов","Это режимы ядра"]},
+  {q:"Команда вывода процессов и потоков?", c:"ps -T -p <PID>", w:["top -u","jobs -l","htop"]},
+  {q:"Назначение сигналов SIGINT, SIGKILL, SIGCHLD, SIGSTOP...", c:"Прерывание, Немедл. завершение, Заверш. дочернего...", w:["Все они перезагружают","Это типы файлов","Это режимы ядра"]},
+  {q:"Поиск по имени команды процесса?", c:"ps -C <имя>", w:["find -name","grep","whereis"]},
+  {q:"Что содержит файл /proc/cmdline?", c:"Параметры загрузки ядра", w:["Список процессов","Настройки сети","Логи systemd"]},
+  {q:"Что делает команда ulimit -u <число>?", c:"Ограничивает кол-во процессов/потоков", w:["Ограничивает память","Ограничивает диски","Ограничивает сеть"]},
+  {q:"Расширение библиотек Astra Linux?", c:".so", w:[".dll",".exe",".lib"]},
+  {q:"Расширение инсталляционных пакетов Astra Linux?", c:".deb", w:[".rpm",".msi",".pkg"]},
+  {q:"Утилита создания deb-пакета?", c:"dpkg-deb", w:["apt","yum","tar"]},
+  {q:"Репозитории в ALSE?", c:"main, update, base, extended", w:["stable, testing, unstable","repo1, repo2, repo3","apt, yum, dnf"]},
+  {q:"Файл прописывания репозиториев?", c:"/etc/apt/sources.list", w:["/etc/yum.repos.d","/etc/pacman.conf","/etc/dnf/repos"]},
+  {q:"Команда просмотра информации о пакете?", c:"dpkg -s / apt show", w:["ls -l","cat info","man pkg"]},
+  {q:"Менеджер пакетов, устанавливающий зависимости?", c:"APT", w:["dpkg","rpm","pacman"]},
+  {q:"Менеджер пакетов с графическим интерфейсом?", c:"Synaptic", w:["GNOME Software","KDE Discover","Muon"]},
+  {q:"Команда создания своего репозитория?", c:"reprepro", w:["apt-repo","dpkg-repo","repo-init"]},
+  {q:"Рекомендуемое сочетание технологий загрузки?", c:"UEFI + GPT", w:["BIOS + MBR","Legacy + FAT32","UEFI + NTFS"]},
+  {q:"Порядок запуска до ядра:", c:"Тестирование → Поиск → Загрузчик 1 → Загрузчик 2 → Меню → Ядро → initramfs → Запуск ядра", w:["Другой порядок 1","Другой порядок 2","Другой порядок 3"]},
+  {q:"Порядок запуска от ядра до системы:", c:"Инициализация → initramfs → /init → Модули ядра → Системный диск → systemd → Модули systemd", w:["Другой порядок 1","Другой порядок 2","Другой порядок 3"]},
+  {q:"Файл настроек GRUB?", c:"/etc/default/grub", w:["/boot/grub.cfg","/etc/grub.conf","/etc/fstab"]},
+  {q:"Команда применения новой конфигурации GRUB?", c:"update-grub", w:["grub-install","grub-mkinitcpio","mkconfig"]},
+  {q:"Какого модуля systemd не существует?", c:".daemon", w:[".service",".socket",".target"]},
+  {q:"Соответствие runlevel и target:", c:"0→poweroff, 1→rescue, 2-4→multi-user, 5→graphical, 6→reboot", w:["0→boot, 1→gui...", "Все равны multi-user", "Только 5 и 6 существуют"]},
+  {q:"Секции в конфиге службы systemd?", c:"[Unit], [Service], [Install]", w:["[Main], [Run], [Stop]","[System], [User], [Kernel]","[Start], [Load], [Exit]"]},
+  {q:"Отслеживать события systemd в реальном времени?", c:"journalctl -f", w:["dmesg -w","tail /var/log","syslog -live"]},
+  {q:"Список всех служб и их состояний?", c:"systemctl list-units --type=service", w:["service --status","ps aux | grep systemd","chkconfig --list"]},
+  {q:"Директория, отражающая инфо об устройствах в ядре?", c:"/sys/devices", w:["/dev","/proc/bus","/usr/devices"]},
+  {q:"Приоритет правил udev: /etc/udev/rules.d или /usr/lib/udev/rules.d?", c:"/etc/udev/rules.d", w:["/usr/lib/udev/rules.d","/etc/default/udev","Одинаковый приоритет"]},
+  {q:"Команда просмотра всех PCI устройств?", c:"lspci", w:["lsusb","lshw","pciutils"]},
+  {q:"Команда просмотра только USB устройств?", c:"lsusb", w:["lspci","lsblk","usbutils"]},
+  {q:"Что делает udevadm info -e?", c:"Выводит экспортированное содержимое базы udev", w:["Перезагружает udev","Создаёт правила","Удаляет устройства"]},
+  {q:"Расширение файлов модулей ядра?", c:".ko", w:[".mod",".sys",".drv"]},
+  {q:"Директория файлов модулей ядра?", c:"/lib/modules/$(uname -r)", w:["/etc/modules","/usr/bin","/boot/grub"]},
+  {q:"Файл списка встроенных модулей для modprobe?", c:"/lib/modules/.../modules.builtin", w:["/etc/modules.conf","/proc/modules","/usr/lib/mods"]},
+  {q:"Команда просмотра загруженных модулей ядра?", c:"lsmod", w:["modinfo","insmod","rmmod"]},
+  {q:"Что делает modprobe -r e1000?", c:"Выгружает модуль e1000", w:["Загружает модуль","Перезапускает драйвер","Показывает инфо"]},
+  {q:"ФС для подключения USB без привилегий?", c:"FUSE", w:["ext4","NTFS","vfat"]},
+  {q:"Получить список ФС, поддерживаемых ядром?", c:"cat /proc/filesystems", w:["lsblk","df -T","mount -l"]},
+  {q:"Каталог с программными файлами только для чтения?", c:"/usr", w:["/bin","/opt","/var"]},
+  {q:"Команда создания нового раздела в fdisk?", c:"n", w:["w","d","q"]},
+  {q:"Опция noexec в fstab?", c:"Запрещает запуск исполняемых файлов", w:["Только чтение","Запрет монтирования","Сжатие данных"]},
+  {q:"Порядок создания LVM:", c:"Физ.тома → Группы → Лог.тома → ФС → Монтирование", w:["Другой порядок 1","Другой порядок 2","Другой порядок 3"]},
+  {q:"Можно ли одной командой расширить и раздел LVM, и ФС?", c:"Да, lvextend -r", w:["Нет, только отдельно","Только через GUI","Через resize2fs"]},
+  {q:"Протокол с надёжной передачей и установлением сессии?", c:"TCP", w:["UDP","ICMP","HTTP"]},
+  {q:"Протокол без гарантии доставки и соединения?", c:"UDP", w:["TCP","FTP","SSH"]},
+  {q:"Префикс маски подсети 255.255.255.0?", c:"/24", w:["/16","/32","/8"]},
+  {q:"Файл сетевой конфигурации интерфейсов в Astra Linux?", c:"/etc/network/interfaces", w:["/etc/resolv.conf","/etc/hosts","/etc/sysconfig/network"]},
+  {q:"Файл настройки DNS-серверов в Linux?", c:"/etc/resolv.conf", w:["/etc/hosts","/etc/network","/etc/ssh"]},
+  {q:"Сервис разрешения DNS-запросов в Linux?", c:"NetworkManager / systemd-resolved", w:["Apache","Cron","SSH"]},
+  {q:"Протокол прикладного уровня модели OSI?", c:"HTTP / DNS / SMTP", w:["IP / ICMP","TCP / UDP","Ethernet / Wi-Fi"]},
+  {q:"Макс. количество хостов в подсети /28?", c:"14", w:["16","30","254"]},
+  {q:"Протокол транспортного уровня модели OSI?", c:"TCP и UDP", w:["IP и ICMP","HTTP и FTP","ARP и DHCP"]},
+  {q:"Слой модели OSI, отвечающий за кадрирование?", c:"Канальный уровень", w:["Сетевой","Транспортный","Прикладной"]}
+];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  let score = 0;
+  let answered = 0;
+  const total = QUESTIONS.length;
+  const container = document.getElementById('quiz-container');
+  const scoreEl = document.getElementById('score');
+  const progressEl = document.getElementById('progress');
+  const percentEl = document.getElementById('percent');
+  const progressFill = document.getElementById('progress-fill');
+
+  QUESTIONS.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    
+    const allOptions = shuffle([item.c, ...item.w]);
+    let optsHtml = '';
+    allOptions.forEach(opt => {
+      optsHtml += `<label class="option" data-val="${opt}">
+        <input type="radio" name="q${idx}" value="${opt}"><span>${opt}</span>
+      </label>`;
+    });
+
+    card.innerHTML = `
+      <div class="q-text"><span class="q-num">${idx + 1}.</span>${item.q}</div>
+      <div class="options">${optsHtml}</div>
+      <button class="btn check-btn" disabled>Ответить</button>
+      <div class="feedback"></div>
+    `;
+    container.appendChild(card);
+
+    const radios = card.querySelectorAll('input');
+    const btn = card.querySelector('.check-btn');
+    const feedback = card.querySelector('.feedback');
+
+    radios.forEach(r => r.addEventListener('change', () => { btn.disabled = false; }));
+
+    btn.addEventListener('click', () => {
+      const sel = card.querySelector('input:checked');
+      if (!sel) return;
+      const selVal = sel.value;
+      const opts = card.querySelectorAll('.option');
+
+      opts.forEach(opt => {
+        opt.classList.add('disabled');
+        const val = opt.dataset.val;
+        if (val === item.c) opt.classList.add('correct');
+        else if (val === selVal && selVal !== item.c) opt.classList.add('wrong');
+      });
+
+      btn.disabled = true;
+      btn.textContent = 'Проверено';
+      btn.classList.add('checked');
+      answered++;
+      
+      if (selVal === item.c) {
+        score++; scoreEl.textContent = score;
+        feedback.innerHTML = '✅ <span style="color:var(--success)">Верно!</span>';
+      } else {
+        feedback.innerHTML = '❌ <span style="color:var(--error)">Неверно. Правильный ответ подчёркнут.</span>';
+      }
+
+      progressEl.textContent = total - answered;
+      const pct = Math.round((answered / total) * 100);
+      percentEl.textContent = pct + '%';
+      progressFill.style.width = pct + '%';
+
+      if (answered === total) {
+        document.getElementById('restart-btn').style.display = 'block';
+        document.getElementById('restart-btn').scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
